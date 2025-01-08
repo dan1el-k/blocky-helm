@@ -1,16 +1,17 @@
 apiVersion: v2
-name: blocky
+name: blocky-helm
 description: Blocky is a DNS proxy and ad-blocker
-home: https://github.com/philipfreude/blocky-helm
+home: https://github.com/dan1el-k/blocky-helm
 type: application
 keywords:
   - ad-blocker
   - dns
   - blocky
+  - splitdns
 maintainers:
-  - name: Philip Freude (@philipfreude)
-version: 0.6.1
-appVersion: v0.23
+  - name: dan1el-k
+version: 1.0.0
+appVersion: v1.0
 
 #dependencies:
 #  - name: redis
