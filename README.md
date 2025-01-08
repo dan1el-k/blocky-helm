@@ -1,7 +1,7 @@
 # Blocky DNS Proxy - Helm Chart
 
 Deploys [Blocky DNS Proxy](https://github.com/0xERR0R/blocky) together with [K8s-Gateway](https://github.com/ori-edge/k8s_gateway) for automated Split-DNS Setup for your local (public) domain.
-An optional [Frontend](https://github.com/Mozart409/blocky-frontend) can be enabled optionally
+A [Frontend](https://github.com/Mozart409/blocky-frontend) can be enabled optionally
 
 
 Releases are provided as a Helm chart artifacts for the sake of easier configuration possibilities, but could be also consumed easily via kustomize and GitOps.
@@ -9,7 +9,7 @@ Releases are provided as a Helm chart artifacts for the sake of easier configura
 
 ## Example how to use it
 
-## Pull in the Chart via Kustomize into your GitOps AppCatalog
+### Pull in the Chart via Kustomize into your GitOps AppCatalog
 
 ```yaml
 #kustomization.yaml
