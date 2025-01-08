@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "blocky.fullname" . }}
+  labels:
+    {{- include "blocky.labels" . | nindent 4 }}
+data:
+  config.yml: |
+    {{- .Values.config | toYaml | nindent 4 }}
+    conditional:
+      mapping:
+        {{ .Values.k8sGateway.domain }}: 127.0.0.1:1053

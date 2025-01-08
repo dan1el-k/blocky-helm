@@ -1,0 +1,171 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "blocky.fullname" . }}
+  labels:
+    {{- include "blocky.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "blocky.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        checksum/config: {{ .Values.config | toYaml | sha1sum }}
+        {{- include "blocky.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "blocky.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.redis.enabled }}
+      initContainers:
+        - name: wait-for-redis
+          image: busybox
+          command: [ "sh", "-c", "until nc -z {{ .Values.config.redis.address | replace ":" " " }} > /dev/null; do echo Waiting for redis...; sleep 2; done;" ]
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: dns-tcp
+              containerPort: {{ .Values.config.ports.dns }}
+              protocol: TCP
+            - name: dns-udp
+              containerPort: {{ .Values.config.ports.dns }}
+              protocol: UDP
+            {{- with .Values.config.ports.tls }}
+            - name: dns-tls
+              containerPort: {{ . }}
+              protocol: TCP
+            {{- end }}
+            {{- with .Values.config.ports.http }}
+            - name: http
+              containerPort: {{ . }}
+              protocol: TCP
+            {{- end }}
+            {{- with .Values.config.ports.https }}
+            - name: https
+              containerPort: {{ . }}
+              protocol: TCP
+            {{- end }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yml
+              subPath: config.yml
+            {{- range .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- if .Values.ui.enabled }}
+        - name: {{ .Chart.Name }}-frontend
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag | default "latest" }}"
+          ports:
+            - name: ui-http
+              containerPort: 8002
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.ui.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.ui.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
+        {{- end }}
+        {{- if .Values.k8sGateway.enabled }}
+        - name: {{ include "k8sGateway.fullname" . }}
+          image: "{{- if .Values.k8sGateway.image.registry }}{{ .Values.k8sGateway.image.registry }}/{{- end }}{{ .Values.k8sGateway.image.repository }}:{{ .Values.k8sGateway.image.tag }}"
+          args:
+            - '-conf'
+            - /etc/coredns/Corefile
+          ports:
+            - name: dns-udp
+              containerPort: 1053
+              protocol: UDP
+            {{- if (eq .Values.k8sGateway.service.useTcp true) }}
+            - containerPort: 1053
+              name: dns-tcp
+              protocol: TCP
+            {{- end }}
+            {{- range .Values.k8sGateway.extraZonePlugins | uniq }}
+            {{- if eq .name "prometheus" }}
+            - containerPort: {{ .parameters | regexFind "[^\\:]*$" }}
+              name: metrics
+              protocol: TCP
+            {{- end }}
+            {{- end }}
+          resources: {}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/coredns
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8181
+              scheme: HTTP
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 1000
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "blocky.fullname" $ }}
+        {{- if .Values.k8sGateway.enabled }}
+        - name: config-volume
+          configMap:
+            name: {{ include "k8sGateway.fullname" . }}
+            items:
+              - key: Corefile
+                path: Corefile
+              {{- range .Values.k8sGateway.zoneFiles }}
+              - key: {{ .filename }}
+                path: {{ .filename }}
+              {{- end }}
+            defaultMode: 42
+        {{- end }}
+        {{- range .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

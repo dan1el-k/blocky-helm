@@ -1,0 +1,48 @@
+{{- if .Values.k8sGateway.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "k8sGateway.fullname" . }}
+  labels:
+    {{- include "blocky.labels" . | nindent 4 }}
+    {{- if .Values.customLabels }}
+    {{ toYaml .Values.customLabels | trim | nindent 4 }}
+    {{- end }}
+data:
+  Corefile: |-
+    .:1053 {
+        {{- if .Values.k8sGateway.debug.enabled }}
+        debug
+        {{- end }}
+        {{- if .Values.k8sGateway.dnsChallenge.enabled }}
+        template IN ANY {{ required "Delegated domain ('domain') is mandatory " .Values.k8sGateway.domain }} {
+           match "_acme-challenge[.](.*)[.]{{ include "k8sGateway.regex" . }}"
+           answer "{{ "{{" }} .Name {{ "}}" }} 5 IN CNAME {{ "{{" }}  index .Match 1 {{ "}}" }}.{{ required "DNS01 challenge domain is mandatory " .Values.k8sGateway.dnsChallenge.domain }}"
+           fallthrough
+        }
+        {{- end }}
+        k8s_gateway {{ required "Delegated domain ('domain') is mandatory " .Values.k8sGateway.domain }} {
+          apex {{ .Values.k8sGateway.apex | default (include "k8sGateway.fqdn" .) }}
+          ttl {{ .Values.k8sGateway.ttl }}
+          {{- if .Values.k8sGateway.secondary }}
+          secondary {{ .Values.k8sGateway.secondary }}
+          {{- end }}
+          {{- if .Values.k8sGateway.watchedResources }}
+          resources {{ join " " .Values.k8sGateway.watchedResources }}
+          {{- end }}
+          {{- if .Values.k8sGateway.fallthrough.enabled }}
+          fallthrough {{- range .Values.k8sGateway.fallthrough.zones }} {{ . }} {{- end }}
+          {{- end }}
+        }
+        {{- range .Values.k8sGateway.extraZonePlugins }}
+        {{ .name }}{{ if .parameters }} {{ .parameters }}{{ end }}{{ if .configBlock }} { {{ .configBlock | nindent 10 }}
+        }{{ end }}
+        {{- end }}
+        {{- range .Values.k8sGateway.zoneFiles }}
+        file /etc/coredns/{{ .filename }}{{ if .domains }} {{ .domains }}{{ end }}
+        {{- end }}
+    }
+  {{- range .Values.k8sGateway.zoneFiles }}
+  {{ .filename }}: {{ toYaml .contents | indent 4 }}
+  {{- end }}
+{{- end }}
