@@ -62,13 +62,67 @@ config:
   upstreams:
     groups:
       default:
-        - 1.1.1.1
-        - 8.8.8.8
+        #- 1.1.1.1
+        #- 8.8.8.8
+        # DNS over HTTPS upstreams
+        - https://1.1.1.1/dns-query
+        - https://1.0.0.1/dns-query
+        - https://dns.google/dns-query
+        # DNS over TLS upstreams
+        #- tcp-tls:dns.quad9.net
+    # blocky will pick the 2 fastest upstreams but you can also use the `strict` strategy
+    strategy: parallel_best
+    timeout: 2s
+
+  # check if upstreams are working
+  startVerifyUpstream: true
+  
+  # there's no IPv6 connectivity inside Docker networks
+  #connectIPVersion: v4
+  
+  # useful for self hosted services
+  #customDNS:
+  #  customTTL: 1h
+  #  mapping:
+  #    someservice.bayas.dev: 10.1.0.4
   # redis:
   #   address: blocky-redis-master:6379
   #   required: true
   prometheus:
     enable: false
+
+  blocking:
+    # I prefer the HaGeZi Light blocklist for set and forget setup, you can use any other blacklist nor whitelist you want
+    # Blocky supports hosts, domains and regex syntax
+    blackLists:
+      ads:
+        - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/light.txt
+    clientGroupsBlock:
+      default:
+        - ads
+    blockType: zeroIp
+    blockTTL: 1m
+    loading:
+      refreshPeriod: 6h
+      downloads:
+        timeout: 60s
+        attempts: 5
+        cooldown: 10s
+      concurrency: 16
+      # start answering queries immediately after start
+      strategy: fast
+      maxErrorsPerSource: 5
+  caching:
+    # enable prefetching improves performance for often used queries
+    prefetching: true
+    # if a domain is queried more than prefetchThreshold times, it will be prefetched for prefetchExpires time
+    prefetchExpires: 24h
+    prefetchThreshold: 2
+
+  # use encrypted DNS for resolving upstreams
+  # same syntax as normal upstreams
+  bootstrapDns:
+    - 1.1.1.1
 
 resources: { }
   # We usually recommend not to specify default resources and to leave this as a conscious
