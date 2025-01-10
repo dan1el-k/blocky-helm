@@ -95,8 +95,7 @@ ui:
   ingress:
     enabled: true
     annotations:
-      kubernetes.io/ingress.class: traefik
-      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: letsencrypt
 
 
 #####################################################################################
