@@ -10,7 +10,7 @@ keywords:
   - splitdns
 maintainers:
   - name: dan1el-k
-version: 1.0.5
+version: 1.0.6
 appVersion: v1.0
 
 #dependencies:

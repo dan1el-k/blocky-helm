@@ -27,7 +27,11 @@ rules:
   - list
   - watch
 - apiGroups: ["gateway.networking.k8s.io"]
-  resources: ["*"]
+  resources:
+  - gateways
+  - httproutes
+  - tcproutes
+  - gatewayclasses
   verbs: ["watch", "list"]
 - apiGroups: ["k8s.nginx.org"]
   resources: ["*"]
