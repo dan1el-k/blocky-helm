@@ -15,7 +15,7 @@ apiVersion: extensions/v1beta1
 {{- end }}
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-ui
   labels:
     {{- include "blocky.labels" . | nindent 4 }}
   {{- with .Values.ui.ingress.annotations }}
@@ -44,7 +44,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ $fullName }}
+                name: {{ $fullName }}-ui
                 port:
                   number: {{ $svcPort }}
   tls: # < placing a host in the TLS config will determine what ends up in the cert's subjectAltNames
