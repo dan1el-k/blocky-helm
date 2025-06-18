@@ -235,9 +235,9 @@ k8sGateway:
     useTcp: true
 
   image:
-    registry: quay.io
-    repository: oriedge/k8s_gateway
-    tag: v0.4.0
+    registry: ghcr.io
+    repository: k8s-gateway/k8s_gateway
+    tag: 1.2.1
     pullPolicy: IfNotPresent
 
   # Delegated domain
