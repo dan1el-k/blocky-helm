@@ -3,6 +3,24 @@ entries:
   blocky-helm:
   - apiVersion: v2
     appVersion: v1.0
+    created: "2025-06-19T21:29:50.839169829Z"
+    description: Blocky is a DNS proxy and ad-blocker
+    digest: 35d9dcd22d916942bf48f923d557c2f33e526c7017b8c06525ed331f78ffe144
+    home: https://github.com/dan1el-k/blocky-helm
+    keywords:
+    - ad-blocker
+    - dns
+    - blocky
+    - splitdns
+    maintainers:
+    - name: dan1el-k
+    name: blocky-helm
+    type: application
+    urls:
+    - https://github.com/dan1el-k/blocky-helm/releases/download/blocky-helm-1.0.10/blocky-helm-1.0.10.tgz
+    version: 1.0.10
+  - apiVersion: v2
+    appVersion: v1.0
     created: "2025-06-18T22:33:53.021209193Z"
     description: Blocky is a DNS proxy and ad-blocker
     digest: 689e1a2d09fd974b9c0ad1ff96279cc9b39ef4fc12e3da5ed4a35d039a4eb0ae
@@ -181,4 +199,4 @@ entries:
     urls:
     - https://github.com/dan1el-k/blocky-helm/releases/download/blocky-helm-1.0.0/blocky-helm-1.0.0.tgz
     version: 1.0.0
-generated: "2025-06-18T22:33:53.021263034Z"
+generated: "2025-06-19T21:29:50.839211037Z"
