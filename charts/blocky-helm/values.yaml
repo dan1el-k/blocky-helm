@@ -74,8 +74,6 @@ config:
     strategy: parallel_best
     timeout: 2s
 
-  # check if upstreams are working
-  startVerifyUpstream: true
   
   # there's no IPv6 connectivity inside Docker networks
   #connectIPVersion: v4
@@ -94,7 +92,7 @@ config:
   blocking:
     # I prefer the HaGeZi Light blocklist for set and forget setup, you can use any other blacklist nor whitelist you want
     # Blocky supports hosts, domains and regex syntax
-    blackLists:
+    denylists:
       ads:
         - https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/light.txt
     clientGroupsBlock:
